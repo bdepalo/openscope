@@ -211,6 +211,18 @@
         "premium": false
     },
     {
+        "icao": "kbwi",
+        "level": "easy",
+        "name": "Baltimore-Washington International Airport West Ops",
+        "premium": false
+    },
+    {
+        "icao": "kbwe",
+        "level": "easy",
+        "name": "Baltimore-Washington International Airport East Ops",
+        "premium": false
+    },
+    {
         "icao": "kjax",
         "level": "easy",
         "name": "Jacksonville International Airport",

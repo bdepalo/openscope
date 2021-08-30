@@ -248,8 +248,42 @@ function _calculateSpawnPositionsAndAltitudes(
  * @param totalDistance {number}
  * @return spawnOffsets {array<number>} distances along route, in nm
  */
-const _assembleSpawnOffsets = (entrailDistance, totalDistance = 0) => {
+const _assembleSpawnOffsets = (entrailDistance, totalDistance = 0, spawnRate) => {
+
     const offsetClosestToAirspace = totalDistance - 3;
+    const spawnOffsets = [];
+
+    // if there is not enough space for arrivals, randomize a start location
+    if (entrailDistance > totalDistance) {
+
+      if(spawnRate > 1) {
+
+        if(offsetClosestToAirspace < 0) {
+            // start location of STAR is within 3nm of boundary, use start of STAR
+            spawnOffsets.push(0);
+        } else {
+            // use a random location along the STAR
+            spawnOffsets.push(_random(0, offsetClosestToAirspace, true));
+        }
+
+      } else {
+
+          // spawn rate is less than 1, check if we should spawn on this STAR
+          if (_random(0, 1, true) < spawnRate) {
+              // spawn rate test passed, pick a location on the STAR
+              if(offsetClosestToAirspace < 0) {
+                  // start location of STAR is within 3nm of boundary, use start of STAR
+                  spawnOffsets.push(0);
+              } else {
+                  // use a random location along the STAR
+                  spawnOffsets.push(_random(0, offsetClosestToAirspace, true));
+              }
+          }
+      }
+
+      return spawnOffsets;
+    }
+
     let smallestIntervalNm = 15;
     const largestIntervalNm = entrailDistance + (entrailDistance - smallestIntervalNm);
 
@@ -258,7 +292,6 @@ const _assembleSpawnOffsets = (entrailDistance, totalDistance = 0) => {
         smallestIntervalNm = largestIntervalNm;
     }
 
-    const spawnOffsets = [offsetClosestToAirspace];
     let distanceAlongRoute = offsetClosestToAirspace;
 
     // distance between successive arrivals in nm
@@ -272,9 +305,6 @@ const _assembleSpawnOffsets = (entrailDistance, totalDistance = 0) => {
 
         spawnOffsets.push(distanceAlongRoute);
     }
-
-    // spawn an aircraft at the first fix of the route
-    spawnOffsets.push(0);
 
     return spawnOffsets;
 };
@@ -348,7 +378,7 @@ const _preSpawn = (spawnPatternJson, airport) => {
     const waypointModelList = routeModel.waypoints;
     const totalDistance = _calculateTotalDistanceAlongRoute(waypointModelList, airport);
     // calculate number of offsets
-    const spawnOffsets = _assembleSpawnOffsets(entrailDistance, totalDistance);
+    const spawnOffsets = _assembleSpawnOffsets(entrailDistance, totalDistance, spawnPatternJson.rate);
     // calculate heading, nextFix and position data to be used when creating an `AircraftModel` along a route
     const spawnPositions = _calculateSpawnPositionsAndAltitudes(
         waypointModelList,
